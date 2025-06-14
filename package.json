@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite --port 5170",
     "build": "tsc -b && vite build",
+    "deploy": "yarn deploy:gh-page",
+    "deploy:gh-page": "yarn build && npx gh-pages -d dist",
     "lint": "eslint .",
     "preview": "vite preview"
   },

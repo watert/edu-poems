@@ -72,7 +72,7 @@ function App() {
       hr { opacity: .3; }
     `)}>
       <h1 className='font-bold text-4xl'>Poems</h1>
-      <div className='tags flex flex-wrap gap-x-2 leading-[1.5em]'>
+      <div className='tags flex flex-wrap gap-x-2 leading-[1.5em] mb-2'>
         <b>标签:</b>
         {tags.map(([tag, count]) => {
           const isActive = (state.tags || []).includes(tag);
@@ -83,7 +83,7 @@ function App() {
           );
         })}
       </div>
-      <div className='tags flex flex-wrap gap-x-2 leading-[1.5em]'>
+      <div className='tags flex flex-wrap gap-x-2 leading-[1.5em] mb-2'>
         <b>作者:</b>
         {authors.map(([item, count]) => {
           const isActive = (state.authors || []).includes(item);
@@ -105,14 +105,14 @@ function App() {
         );
         return (
           <>
-            <div key={title} className='poem-item my-8 flex'>
-              <div className=' w-[36em]'>
+            <div key={title} className='poem-item my-8 md:flex'>
+              <div className='max-w-[36em]'>
                 <h2 className='font-bold text-xl mb-4'>{index}. {title} <span className='text-[0.8em]'> - {author}</span></h2>
                 <div className='leading-[2em] text-lg' dangerouslySetInnerHTML={{ __html: html }} />
               </div>
-              <div className='mt-4 ml-4'>
+              <div className='mt-4 md:ml-4'>
                 <p className='mb-2 opacity-60'>{tags.map(r => `#${r}`).join(' ')}</p>
-                <p className='w-[320px]' dangerouslySetInnerHTML={{ __html: desc }} />
+                <p className='max-w-[320px]' dangerouslySetInnerHTML={{ __html: desc }} />
               </div>
             </div>
             {!isLast && <hr />}

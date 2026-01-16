@@ -1,6 +1,8 @@
 import { marked } from "marked";
 import { parseMarkdownBlocks } from "./parseMarkdownBlocks";
 import _ from "lodash";
+import cnchar from 'cnchar';
+
 
 export type Poem = {
   index: number;
@@ -9,6 +11,8 @@ export type Poem = {
   content: string;
   desc: string;
   tags: string[];
+  
+  count_total_strokes: number;
 };
 
 /**
@@ -102,6 +106,13 @@ export function parsePoems(text: string,
     tags = tags.split(',').map(r => r.trim());
     attrs = _.omit(attrs, [descKey, tagsKey]);
     const html = convertTextToRubyHtml(content);
-    return { index, title, author, attrs, content, desc, tags, html };
+    const content_chars = content.replace(/\(.+?\)/gm, '');
+    const strokes = cnchar.stroke(content_chars, 'array');
+    const count_chars = (strokes as number[]).filter(r => r > 0).length;
+    const count_total_strokes = _.sum((strokes as number[]).filter(r => r > 0));
+    return {
+      index, title, author, attrs, content, content_chars, count_chars,
+      count_total_strokes, desc, tags, html,
+    };
   })
 }

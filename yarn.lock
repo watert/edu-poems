@@ -1035,6 +1035,46 @@ chownr@^3.0.0:
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-3.0.0.tgz#9855e64ecd240a9cc4267ce8a4aa5d24a1da15e4"
   integrity sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==
 
+cnchar-draw@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/cnchar-draw/-/cnchar-draw-3.2.6.tgz#6bac270aff26c4b620a27b55a1a8a88eb2797ec8"
+  integrity sha512-Rlfl8XkCZIDLZ/acOTdgpQCy7H+yhEFHXZVqCJ2V8080S9ROgVHUGSXaBa7x7lvKuxwArlR70kkMEEF1Md1SPw==
+  dependencies:
+    cnchar-types "^3.2.6"
+
+cnchar-order@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/cnchar-order/-/cnchar-order-3.2.6.tgz#9d5accc89aed898186c8e5a2d9afb13a2302f96c"
+  integrity sha512-xeW1MnQk9GLW9rOvgTtBLl9amyJ0MBKAuXGgbiAwC/n1MRLoxW4ZnjPL+isVsi0rV3QXlbiDQQKAnL6TsJNLhA==
+  dependencies:
+    cnchar-types "^3.2.6"
+
+cnchar-poly@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/cnchar-poly/-/cnchar-poly-3.2.6.tgz#2b7fbcec65023816d9fd3b64e65b4611445d9119"
+  integrity sha512-CF0WA5S/OTvuY2gBPTgnMPCfte/Hk5od22zK9J3B7VzMZfzdH01Bs0+9xl2xLsObEE6UUg3dvqwDR5ozkFZM7A==
+  dependencies:
+    cnchar-types "^3.2.6"
+
+cnchar-trad@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/cnchar-trad/-/cnchar-trad-3.2.6.tgz#75524aae70cca971ce3ba2a2d8d347487c53a721"
+  integrity sha512-xdQUwd+W7j4i4vD1c6ykgwuzNExBZrakrmi/5c6ODclyGgEb7QcBKGta7v9WewNhauLHUkTpeMR4AERoBhs3NQ==
+  dependencies:
+    cnchar-types "^3.2.6"
+
+cnchar-types@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/cnchar-types/-/cnchar-types-3.2.6.tgz#32fb430e20b5f2298b3e611b40502597764c1170"
+  integrity sha512-LGU2ss7KcsI1Psme73+jffUX0ZDuChr6P9Rj2j8lynJHStklNpoC/+kheKSSUcXQ1u2KNvZt1Shs/5efcihHkg==
+
+cnchar@^3.2.6:
+  version "3.2.6"
+  resolved "https://registry.yarnpkg.com/cnchar/-/cnchar-3.2.6.tgz#a2da9ab3b0cbee163e0f280578e15681c7cb7187"
+  integrity sha512-7Up5ALAkoOTAHlRMN0B7VgrrRsp6+trgFV0M7xSsZ0TwnnBfW68gXClcE9Oz8sTOEu+zqGOZjBhlHNzPIBckDA==
+  dependencies:
+    cnchar-types "^3.2.6"
+
 color-convert@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-2.0.1.tgz#72d3a68d598c9bdb3af2ad1e84f21d896abd4de3"
@@ -1056,6 +1096,11 @@ convert-source-map@^1.5.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.9.0.tgz#7faae62353fb4213366d0ca98358d22e8368b05f"
   integrity sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==
+
+cookie@^1.0.1:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/cookie/-/cookie-1.0.2.tgz#27360701532116bd3f1f9416929d176afe1e4610"
+  integrity sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==
 
 copy-to-clipboard@^3.3.1:
   version "3.3.3"
@@ -1850,6 +1895,14 @@ react-dom@^19.1.0:
   dependencies:
     scheduler "^0.26.0"
 
+react-router@^7.8.2:
+  version "7.8.2"
+  resolved "https://registry.yarnpkg.com/react-router/-/react-router-7.8.2.tgz#9d2d4147ca72832c550acc60ed688062d18f70b8"
+  integrity sha512-7M2fR1JbIZ/jFWqelpvSZx+7vd7UlBTfdZqf6OSdF9g6+sfdqJDAWcak6ervbHph200ePlu+7G8LdoiC3ReyAQ==
+  dependencies:
+    cookie "^1.0.1"
+    set-cookie-parser "^2.6.0"
+
 react-universal-interface@^0.6.2:
   version "0.6.2"
   resolved "https://registry.yarnpkg.com/react-universal-interface/-/react-universal-interface-0.6.2.tgz#5e8d438a01729a4dbbcbeeceb0b86be146fe2b3b"
@@ -1961,6 +2014,11 @@ semver@^7.6.0:
   version "7.7.2"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.7.2.tgz#67d99fdcd35cec21e6f8b87a7fd515a33f982b58"
   integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
+
+set-cookie-parser@^2.6.0:
+  version "2.7.1"
+  resolved "https://registry.yarnpkg.com/set-cookie-parser/-/set-cookie-parser-2.7.1.tgz#3016f150072202dfbe90fadee053573cc89d2943"
+  integrity sha512-IOc8uWeOZgnb3ptbCURJWNjWUPcO3ZnTTdzsurqERrP6nPyv+paC55vJM0LpOlT2ne+Ix+9+CRG1MNLlyZ4GjQ==
 
 set-harmonic-interval@^1.0.1:
   version "1.0.1"

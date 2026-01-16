@@ -68,7 +68,7 @@ export function parseMarkdownBlocks(
     let attrs = {};
     const lists = block?.children?.filter((t) => t.type === 'list');
     if (lists) {
-      console.log('lists', lists, lists[0].items?.[0]);
+      // console.log('lists', lists, lists[0].items?.[0]);
       const parseAttrItem = (row) => {
         const startChar = (row.tokens[1]?.text || '').trim().slice(0, 1);
         if (![":", "："].includes(startChar)) return row;

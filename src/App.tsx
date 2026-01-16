@@ -4,12 +4,16 @@ import { PagePoems } from './pages/Poems';
 import { BrowserRouter, createBrowserRouter, Outlet, Route, RouterProvider, Routes } from 'react-router';
 import { PagePoemStrokes } from './pages/PoemStrokes';
 import { PageCharQuiz } from './pages/CharQuiz';
+import { NavBar } from './components/NavBar';
 
 function Root() {
-  return <div>
-    <Outlet />
-  </div>
-};
+  return (
+    <div>
+      <NavBar />
+      <Outlet />
+    </div>
+  );
+}
 
 function App() {
   return <BrowserRouter>

@@ -244,12 +244,22 @@ export function PageCharQuiz() {
       // 查找目标格子的 DOM 元素
       const targetElement = document.querySelector(selector);
       if (targetElement) {
-        // 找到 PinyinChar 内部的可点击元素（EditableBox）
-        const editableBox = targetElement.querySelector('.cursor-pointer');
-        if (editableBox) {
-          // 触发点击事件，使其进入编辑状态
-          (editableBox as HTMLElement).click();
-          console.log('Clicked target cell:', { pageIndex, targetIndex });
+        // 根据 focusType 找到对应的可点击元素
+        let targetPart;
+        if (event.focusType === 'pinyin') {
+          targetPart = targetElement.querySelector('.pinyin-part');
+        } else {
+          targetPart = targetElement.querySelector('.char-part');
+        }
+        
+        if (targetPart) {
+          // 找到内部的可点击元素（EditableBox）
+          const editableBox = targetPart.querySelector('.cursor-pointer');
+          if (editableBox) {
+            // 触发点击事件，使其进入编辑状态
+            (editableBox as HTMLElement).click();
+            console.log('Clicked target cell:', { pageIndex, targetIndex, focusType: event.focusType });
+          }
         }
       }
     }

@@ -174,7 +174,7 @@ export const PinyinChar: React.FC<PinyinCharProps> = ({
 
   return (
     <div className={`flex flex-col items-center -ml-[1px] ${className}`}>
-      <div className='-mb-[1px]'>
+      <div className='-mb-[1px] pinyin-part'>
         <EditableBox 
           displayValue={pinyin} 
           editValue={editPinyin || pinyin} 
@@ -185,15 +185,17 @@ export const PinyinChar: React.FC<PinyinCharProps> = ({
           onNavigate={handleNavigate}
         />
       </div>
-      <EditableBox 
-        displayValue={char.slice(0, 1)} 
-        editValue={char.slice(0, 1)} 
-        size={size} 
-        strokeColor={strokeColor} 
-        isPinyin={false} 
-        onChange={handleCharChange}
-        onNavigate={handleNavigate}
-      />
+      <div className='char-part'>
+        <EditableBox 
+          displayValue={char.slice(0, 1)} 
+          editValue={char.slice(0, 1)} 
+          size={size} 
+          strokeColor={strokeColor} 
+          isPinyin={false} 
+          onChange={handleCharChange}
+          onNavigate={handleNavigate}
+        />
+      </div>
     </div>
   );
 };

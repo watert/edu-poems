@@ -79,8 +79,11 @@ const EditableBox = ({
       return;
     }
     
+    // 检查是否为全选状态（空字符串时不视为全选）
+    const isSelectAll = inputValue.length > 0 && start === 0 && end === inputValue.length;
+    
     // 处理左右键
-    if (e.key === 'ArrowLeft' && start === 0) {
+    if (e.key === 'ArrowLeft' && start === 0 && !isSelectAll) {
       e.preventDefault();
       onNavigate?.({
         direction: 'prev',
@@ -89,7 +92,7 @@ const EditableBox = ({
       return;
     }
     
-    if (e.key === 'ArrowRight' && end === inputValue.length) {
+    if (e.key === 'ArrowRight' && end === inputValue.length && !isSelectAll) {
       e.preventDefault();
       onNavigate?.({
         direction: 'next',
@@ -155,7 +158,7 @@ const EditableBox = ({
 
   return (
     <div
-      className="cursor-pointer hover:bg-red-50 rounded transition-colors"
+      className="cursor-pointer hover:bg-green-50 rounded transition-colors"
       onClick={() => setEditing(true)}
     >
       {isPinyin ? (

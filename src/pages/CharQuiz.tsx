@@ -4,8 +4,26 @@ import { A4Page } from "../components/A4Page";
 import { PinyinChar } from "../components/PinyinChar";
 import { convertPinyinTones } from "../convertPinyinTones";
 
-type PageData = { title: string; type?: string; value?: string; items?: { pinyin?: string; char?: string }[] };
+type PageItem = { pinyin?: string; char?: string };
+type PageData = { title: string; type?: string; value?: string; items?: PageItem[] };
 type DocData = PageData[];
+type NormalizedPageData = { title: string; items: PageItem[] };
+type NormalizedDocData = NormalizedPageData[];
+
+function normalizePageData(page: PageData): NormalizedPageData {
+  if (page.items) return { title: page.title, items: page.items };
+  if (page.type === 'pinyin') {
+    return { title: page.title, items: (page.value || '').split(',').map(item => ({ pinyin: item || undefined })) };
+  }
+  if (page.type === 'char') {
+    return { title: page.title, items: (page.value || '').split(',').map(item => ({ char: item })) };
+  }
+  return { title: page.title, items: [] };
+}
+
+function normalizeDocData(doc: DocData): NormalizedDocData {
+  return doc.map(normalizePageData);
+}
 
 const DEFAULT_DOC: DocData = [
   { title: '一年级上 汉字 1', type: 'char', value: '一,二,三,上,口,耳,目,手,日,火,田,禾,六,七,八,十,九,王,午,下,去,年,了,子,大,人,可,叶,东,西,竹,马,牙,用,几,四,小,鸟,是,天,女,开,关,先,云,雨,虫,山,水,力' },
@@ -35,21 +53,21 @@ function useCharQuizDocs() {
     return docTitles[0] || DEFAULT_DOC_TITLE;
   });
 
-  const [currentDoc, setCurrentDoc] = useState<DocData>(() => {
-    if (currentDocTitle === DEFAULT_DOC_TITLE) return DEFAULT_DOC;
+  const [currentDoc, setCurrentDoc] = useState<ReturnType<typeof normalizeDocData>>(() => {
+    if (currentDocTitle === DEFAULT_DOC_TITLE) return normalizeDocData(DEFAULT_DOC);
     try {
       const stored = localStorage.getItem(`edu-poems-charquiz-${currentDocTitle}`);
-      if (stored) return JSON.parse(stored);
+      if (stored) return normalizeDocData(JSON.parse(stored));
     } catch {}
-    return DEFAULT_DOC;
+    return normalizeDocData(DEFAULT_DOC);
   });
 
-  const saveCurrentDoc = useCallback((doc: DocData) => {
+  const saveCurrentDoc = useCallback((doc: NormalizedDocData) => {
     localStorage.setItem(`edu-poems-charquiz-${currentDocTitle}`, JSON.stringify(doc));
     setCurrentDoc(doc);
   }, [currentDocTitle]);
 
-  const saveDocAs = useCallback((newTitle: string, doc: DocData) => {
+  const saveDocAs = useCallback((newTitle: string, doc: NormalizedDocData) => {
     localStorage.setItem(`edu-poems-charquiz-${newTitle}`, JSON.stringify(doc));
     const newTitles = [...new Set([...docTitles, newTitle])];
     localStorage.setItem('edu-poems-charquiz-docs', JSON.stringify(newTitles));
@@ -58,7 +76,7 @@ function useCharQuizDocs() {
   }, [docTitles]);
 
   const addNewDoc = useCallback((title: string) => {
-    const newDoc: DocData = [{ title, items: [] }];
+    const newDoc: NormalizedDocData = [{ title, items: [] }];
     localStorage.setItem(`edu-poems-charquiz-${title}`, JSON.stringify(newDoc));
     const newTitles = [...docTitles, title];
     localStorage.setItem('edu-poems-charquiz-docs', JSON.stringify(newTitles));
@@ -69,12 +87,18 @@ function useCharQuizDocs() {
 
   const loadDoc = useCallback((title: string) => {
     if (title === DEFAULT_DOC_TITLE) {
-      setCurrentDoc(DEFAULT_DOC);
+      setCurrentDoc(normalizeDocData(DEFAULT_DOC));
     } else {
       try {
         const stored = localStorage.getItem(`edu-poems-charquiz-${title}`);
-        if (stored) setCurrentDoc(JSON.parse(stored));
-      } catch {}
+        if (stored) {
+          setCurrentDoc(normalizeDocData(JSON.parse(stored)));
+        } else {
+          setCurrentDoc([{ title, items: [] }]);
+        }
+      } catch {
+        setCurrentDoc([{ title, items: [] }]);
+      }
     }
     setCurrentDocTitle(title);
   }, []);
@@ -86,7 +110,7 @@ function useCharQuizDocs() {
     localStorage.removeItem('edu-poems-charquiz-docs');
     setDocTitles([DEFAULT_DOC_TITLE]);
     setCurrentDocTitle(DEFAULT_DOC_TITLE);
-    setCurrentDoc(DEFAULT_DOC);
+    setCurrentDoc(normalizeDocData(DEFAULT_DOC));
   }, [docTitles]);
 
   return { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault };
@@ -171,37 +195,25 @@ function ConfigPanel({
 
 export function PageCharQuiz() {
   const { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault } = useCharQuizDocs();
-  const [editableDoc, setEditableDoc] = useState<DocData>(currentDoc);
+  const [editableDoc, setEditableDoc] = useState<NormalizedDocData>(currentDoc);
 
   useEffect(() => { setEditableDoc(currentDoc); }, [currentDoc]);
 
-  const getItems = (page: PageData): { pinyin?: string; char?: string }[] => {
-    if (page.items) return page.items;
-    if (page.type === 'pinyin') {
-      return (page.value || '').split(',').map(item => ({ pinyin: convertPinyinTones(item) }));
-    }
-    if (page.type === 'char') {
-      return (page.value || '').split(',').map(item => ({ char: item }));
-    }
-    return [];
-  };
-
-  const handleItemChange = (pageIndex: number, itemIndex: number, newItem: { pinyin?: string; char?: string }) => {
+  const handleItemChange = (pageIndex: number, itemIndex: number, newItem: PageItem) => {
     const newDoc = [...editableDoc];
     const page = { ...newDoc[pageIndex] };
-
-    if (page.items) {
-      page.items = [...page.items];
-      page.items[itemIndex] = newItem;
-    } else {
-      const items = getItems(page);
-      page.items = [...items];
-      page.items[itemIndex] = newItem;
+    page.items = [...page.items];
+    
+    // 确保数组长度足够，避免产生空洞
+    while (page.items.length <= itemIndex) {
+      page.items.push({});
     }
-
+    
+    page.items[itemIndex] = newItem;
     newDoc[pageIndex] = page;
     setEditableDoc(newDoc);
   };
+  console.log('editableDoc', editableDoc);
 
   return (
     <div>
@@ -217,28 +229,38 @@ export function PageCharQuiz() {
 
       <div>
         {editableDoc.map((page, pageIdx) => {
-          const pageItems = getItems(page);
+          const pageItems = page.items;
 
           return (
             <A4Page key={pageIdx} className="px-8" title={page.title} footer={page.title}>
               <div className="flex flex-1 flex-wrap gap-y-4 m-auto content-center items-center justify-center">
-                {pageItems.map((item, idx) => (
-                  <PinyinChar
+                {pageItems.map((item, idx) => {
+                  console.log('item', item);
+                  return <PinyinChar
                     size={SIZE} strokeColor={COLOR}
                     key={idx}
                     char={item.char || ''}
-                    pinyin={item.pinyin || ''}
+                    pinyin={convertPinyinTones(item.pinyin || '')}
+                    editPinyin={item.pinyin || ''}
                     onChange={({ char, pinyin }) => {
                       handleItemChange(pageIdx, idx, { char, pinyin });
                     }}
                   />
-                ))}
-                {range(64 - pageItems.length).map((_, idx) => (
-                  <PinyinChar
-                    size={SIZE} strokeColor={COLOR}
-                    key={`empty-${idx}`} char="" pinyin=""
-                  />
-                ))}
+                })}
+                {range(64 - pageItems.length).map((_, idx) => {
+                  const itemIndex = pageItems.length + idx;
+                  return (
+                    <PinyinChar
+                      size={SIZE} strokeColor={COLOR}
+                      key={`empty-${idx}`}
+                      char=""
+                      pinyin=""
+                      onChange={({ char, pinyin }) => {
+                        handleItemChange(pageIdx, itemIndex, { char, pinyin });
+                      }}
+                    />
+                  );
+                })}
               </div>
             </A4Page>
           );

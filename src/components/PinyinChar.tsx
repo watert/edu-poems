@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
 interface PinyinCharProps {
   pinyin?: string;
+  editPinyin?: string;
   char?: string;
   size?: number;
   strokeColor?: string;
@@ -9,23 +10,25 @@ interface PinyinCharProps {
 }
 
 const EditableBox = ({
-  value,
+  displayValue,
+  editValue,
   size,
   strokeColor,
   isPinyin,
   onChange,
 }: {
-  value: string;
+  displayValue: string;
+  editValue: string;
   size: number;
   strokeColor: string;
   isPinyin: boolean;
   onChange: (val: string) => void;
 }) => {
   const [editing, setEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState(editValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setInputValue(value); }, [value]);
+  useEffect(() => { setInputValue(editValue); }, [editValue]);
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -36,7 +39,7 @@ const EditableBox = ({
 
   const handleSubmit = () => {
     setEditing(false);
-    if (inputValue !== value) onChange(inputValue);
+    if (inputValue !== editValue) onChange(inputValue);
   };
 
   const height = Math.round(size * (isPinyin ? 0.4 : 1));
@@ -72,7 +75,7 @@ const EditableBox = ({
           <rect x="0.5" y="0.5" width={size - 1} height={height - 1} fill="none" stroke={strokeColor} strokeWidth="1" />
           <line x1="0" y1={height / 3} x2={size} y2={height / 3} stroke={strokeColor} strokeDasharray="3 2" strokeWidth="0.5" />
           <line x1="0" y1={(height / 3) * 2} x2={size} y2={(height / 3) * 2} stroke={strokeColor} strokeDasharray="3 2" strokeWidth="0.5" />
-          <text x="50%" y="42%" fill="#333" textAnchor="middle" dominantBaseline="central" fontSize={height * 0.65} fontWeight={500}>{value}</text>
+          <text x="50%" y="42%" fill="#333" textAnchor="middle" dominantBaseline="central" fontSize={height * 0.65} fontWeight={500}>{displayValue}</text>
         </svg>
       ) : (
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
@@ -81,7 +84,7 @@ const EditableBox = ({
           <line x1="0.5" y1={size / 2} x2={size - 0.5} y2={size / 2} stroke={strokeColor} strokeDasharray="4 3" />
           <line x1="0" y1="0" x2={size} y2={size} stroke={strokeColor} strokeDasharray="4 3" opacity="0.4" />
           <line x1={size} y1="0" x2="0" y2={size} stroke={strokeColor} strokeDasharray="4 3" opacity="0.4" />
-          <text x="50%" y="50%" dy=".1em" dominantBaseline="middle" textAnchor="middle" fontSize={size * 0.8} fontWeight={600} fontFamily="'KaiTi', 'Kai', 'STKaiti', 'SimKai', serif" fill="#000">{value}</text>
+          <text x="50%" y="50%" dy=".1em" dominantBaseline="middle" textAnchor="middle" fontSize={size * 0.8} fontWeight={600} fontFamily="'KaiTi', 'Kai', 'STKaiti', 'SimKai', serif" fill="#000">{displayValue}</text>
         </svg>
       )}
     </div>
@@ -90,13 +93,14 @@ const EditableBox = ({
 
 export const PinyinChar: React.FC<PinyinCharProps> = ({
   pinyin = "",
+  editPinyin,
   char = "",
   size = 48,
   strokeColor = "#F66",
   onChange,
 }) => {
   const handleCharChange = (newChar: string) => {
-    onChange?.({ char: newChar.slice(0, 1), pinyin });
+    onChange?.({ char: newChar.slice(0, 1), pinyin: editPinyin || pinyin });
   };
 
   const handlePinyinChange = (newPinyin: string) => {
@@ -106,9 +110,9 @@ export const PinyinChar: React.FC<PinyinCharProps> = ({
   return (
     <div className='flex flex-col items-center -ml-[1px]'>
       <div className='-mb-[1px]'>
-        <EditableBox value={pinyin} size={Math.ceil(size * 1.33)} strokeColor={strokeColor} isPinyin={true} onChange={handlePinyinChange} />
+        <EditableBox displayValue={pinyin} editValue={editPinyin || pinyin} size={Math.ceil(size * 1.33)} strokeColor={strokeColor} isPinyin={true} onChange={handlePinyinChange} />
       </div>
-      <EditableBox value={char.slice(0, 1)} size={size} strokeColor={strokeColor} isPinyin={false} onChange={handleCharChange} />
+      <EditableBox displayValue={char.slice(0, 1)} editValue={char.slice(0, 1)} size={size} strokeColor={strokeColor} isPinyin={false} onChange={handleCharChange} />
     </div>
   );
 };

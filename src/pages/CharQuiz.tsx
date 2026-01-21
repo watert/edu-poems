@@ -244,9 +244,19 @@ export function PageCharQuiz() {
       // 查找目标格子的 DOM 元素
       const targetElement = document.querySelector(selector);
       if (targetElement) {
-        // 根据 focusType 找到对应的可点击元素
+        // 根据导航方向和当前焦点类型确定目标焦点类型
+        let targetFocusType = event.focusType;
+        if (event.direction === 'up' && event.focusType === 'pinyin') {
+          // 从拼音向上导航，目标为汉字
+          targetFocusType = 'char';
+        } else if (event.direction === 'down' && event.focusType === 'char') {
+          // 从汉字向下导航，目标为拼音
+          targetFocusType = 'pinyin';
+        }
+        
+        // 根据目标焦点类型找到对应的可点击元素
         let targetPart;
-        if (event.focusType === 'pinyin') {
+        if (targetFocusType === 'pinyin') {
           targetPart = targetElement.querySelector('.pinyin-part');
         } else {
           targetPart = targetElement.querySelector('.char-part');
@@ -258,7 +268,7 @@ export function PageCharQuiz() {
           if (editableBox) {
             // 触发点击事件，使其进入编辑状态
             (editableBox as HTMLElement).click();
-            console.log('Clicked target cell:', { pageIndex, targetIndex, focusType: event.focusType });
+            console.log('Clicked target cell:', { pageIndex, targetIndex, focusType: targetFocusType });
           }
         }
       }

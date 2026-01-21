@@ -97,6 +97,37 @@ const EditableBox = ({
       });
       return;
     }
+    
+    // 处理上下键
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      // 如果是上箭头且在汉字部分，切换到拼音部分
+      if (e.key === 'ArrowUp' && !isPinyin) {
+        // 切换到拼音部分
+        const pinyinPart = input.closest('.char-part')?.previousElementSibling as HTMLElement;
+        if (pinyinPart) {
+          const pinyinBox = pinyinPart.querySelector('.cursor-pointer') as HTMLElement;
+          pinyinBox?.click();
+        }
+      }
+      // 如果是下箭头且在拼音部分，切换到汉字部分
+      else if (e.key === 'ArrowDown' && isPinyin) {
+        // 切换到汉字部分
+        const charPart = input.closest('.pinyin-part')?.nextElementSibling as HTMLElement;
+        if (charPart) {
+          const charBox = charPart.querySelector('.cursor-pointer') as HTMLElement;
+          charBox?.click();
+        }
+      }
+      // 否则导航到上下行的格子
+      else {
+        onNavigate?.({
+          direction: e.key === 'ArrowUp' ? 'up' : 'down',
+          focusType: isPinyin ? 'pinyin' : 'char',
+        });
+      }
+      return;
+    }
   };
 
   const height = Math.round(size * (isPinyin ? 0.4 : 1));

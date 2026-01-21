@@ -4,13 +4,10 @@ import { A4Page } from "../components/A4Page";
 import { PinyinChar } from "../components/PinyinChar";
 import { convertPinyinTones } from "../convertPinyinTones";
 
-const STORAGE_KEY = 'edu-poems-charquiz-data';
+type PageData = { title: string; type?: string; value?: string; items?: { pinyin?: string; char?: string }[] };
+type DocData = PageData[];
 
-export type PageItemType = 
-  | { title: string; type: string; value: string; }
-  | { title: string; items?: { pinyin?: string; char?: string }[] }
-
-const DEFAULT_PAGES: PageItemType[] = [
+const DEFAULT_DOC: DocData = [
   { title: '一年级上 汉字 1', type: 'char', value: '一,二,三,上,口,耳,目,手,日,火,田,禾,六,七,八,十,九,王,午,下,去,年,了,子,大,人,可,叶,东,西,竹,马,牙,用,几,四,小,鸟,是,天,女,开,关,先,云,雨,虫,山,水,力' },
   { title: '一年级上 汉字 2', type: 'char', value: '男,土,木,心,尺,本,刀,不,少,中,五,风,立,正,工,厂,门,卫,月,儿,头,里,见,在,我,左,右,和,也,又,才,爸,妈,比,巴,长,公,只,个,多,石,出,来,半,你,有,牛,羊,果,白' },
   { title: '一年级上 拼音 1', type: 'pinyin', value: 'yi1,er4,san1,shang4,kou3,er3,mu4,shou3,ri4,huo3,tian2,he2,liu4,qi1,ba1,jiu3,shi2,wang2,wu3,xia4,qu4,nian2,le5,zi3,da4,ren2,ke3,ye4,dong1,xi1,zhu2,ma3,ya2,yong4,ji3,si4,xiao3,niao3,shi4,tian1,nv3,kai1,guan1,xian1,yun2,yu3,chong2,shan1,shui3,li4' },
@@ -18,49 +15,97 @@ const DEFAULT_PAGES: PageItemType[] = [
   { title: 'Test', items: [{ pinyin: 'yi1', char: '一' }, { pinyin: 'er4' }, { char: '三' }] }
 ];
 
+const DEFAULT_DOC_TITLE = 'Default';
+
 const SIZE = 64;
 const COLOR = "#AAA";
 
-type PageData = { title: string; type?: string; value?: string; items?: { pinyin?: string; char?: string }[] };
-
-function usePagesData() {
-  const [pages, setPages] = useState<PageData[]>(() => {
+function useCharQuizDocs() {
+  const [docTitles, setDocTitles] = useState<string[]>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem('edu-poems-charquiz-docs');
       if (stored) {
         return JSON.parse(stored);
       }
     } catch {}
-    return DEFAULT_PAGES;
+    return [DEFAULT_DOC_TITLE];
   });
 
-  const savePages = useCallback((newPages: PageData[]) => {
-    setPages(newPages);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPages));
+  const [currentDocTitle, setCurrentDocTitle] = useState<string>(() => {
+    return docTitles[0] || DEFAULT_DOC_TITLE;
+  });
+
+  const [currentDoc, setCurrentDoc] = useState<DocData>(() => {
+    if (currentDocTitle === DEFAULT_DOC_TITLE) return DEFAULT_DOC;
+    try {
+      const stored = localStorage.getItem(`edu-poems-charquiz-${currentDocTitle}`);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return DEFAULT_DOC;
+  });
+
+  const saveCurrentDoc = useCallback((doc: DocData) => {
+    localStorage.setItem(`edu-poems-charquiz-${currentDocTitle}`, JSON.stringify(doc));
+    setCurrentDoc(doc);
+  }, [currentDocTitle]);
+
+  const saveDocAs = useCallback((newTitle: string, doc: DocData) => {
+    localStorage.setItem(`edu-poems-charquiz-${newTitle}`, JSON.stringify(doc));
+    const newTitles = [...new Set([...docTitles, newTitle])];
+    localStorage.setItem('edu-poems-charquiz-docs', JSON.stringify(newTitles));
+    setDocTitles(newTitles);
+    setCurrentDocTitle(newTitle);
+  }, [docTitles]);
+
+  const addNewDoc = useCallback((title: string) => {
+    const newDoc: DocData = [{ title, items: [] }];
+    localStorage.setItem(`edu-poems-charquiz-${title}`, JSON.stringify(newDoc));
+    const newTitles = [...docTitles, title];
+    localStorage.setItem('edu-poems-charquiz-docs', JSON.stringify(newTitles));
+    setDocTitles(newTitles);
+    setCurrentDocTitle(title);
+    setCurrentDoc(newDoc);
+  }, [docTitles]);
+
+  const loadDoc = useCallback((title: string) => {
+    if (title === DEFAULT_DOC_TITLE) {
+      setCurrentDoc(DEFAULT_DOC);
+    } else {
+      try {
+        const stored = localStorage.getItem(`edu-poems-charquiz-${title}`);
+        if (stored) setCurrentDoc(JSON.parse(stored));
+      } catch {}
+    }
+    setCurrentDocTitle(title);
   }, []);
 
   const resetToDefault = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setPages(DEFAULT_PAGES);
-  }, []);
+    docTitles.forEach(t => {
+      if (t !== DEFAULT_DOC_TITLE) localStorage.removeItem(`edu-poems-charquiz-${t}`);
+    });
+    localStorage.removeItem('edu-poems-charquiz-docs');
+    setDocTitles([DEFAULT_DOC_TITLE]);
+    setCurrentDocTitle(DEFAULT_DOC_TITLE);
+    setCurrentDoc(DEFAULT_DOC);
+  }, [docTitles]);
 
-  return { pages, savePages, resetToDefault };
+  return { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault };
 }
 
 function ConfigPanel({
-  pages,
-  currentPageIndex,
-  onSelectPage,
+  docTitles,
+  currentDocTitle,
+  onSelectDoc,
   onSave,
-  onDuplicate,
+  onSaveAs,
   onAddNew,
   onReset,
 }: {
-  pages: PageData[];
-  currentPageIndex: number;
-  onSelectPage: (index: number) => void;
+  docTitles: string[];
+  currentDocTitle: string;
+  onSelectDoc: (title: string) => void;
   onSave: () => void;
-  onDuplicate: () => void;
+  onSaveAs: (title: string) => void;
   onAddNew: (title: string) => void;
   onReset: () => void;
 }) {
@@ -70,14 +115,14 @@ function ConfigPanel({
     <div className="print:hidden p-4 bg-gray-100 border-b mb-4">
       <div className="flex flex-wrap gap-4 items-center">
         <div className="flex items-center gap-2">
-          <span className="font-bold">页面:</span>
+          <span className="font-bold">文档:</span>
           <select
-            value={currentPageIndex}
-            onChange={(e) => onSelectPage(Number(e.target.value))}
+            value={currentDocTitle}
+            onChange={(e) => onSelectDoc(e.target.value)}
             className="border rounded px-2 py-1 min-w-[160px]"
           >
-            {pages.map((page, idx) => (
-              <option key={idx} value={idx}>{page.title}</option>
+            {docTitles.map(title => (
+              <option key={title} value={title}>{title}</option>
             ))}
           </select>
         </div>
@@ -86,10 +131,14 @@ function ConfigPanel({
           <button onClick={onSave} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
             Save
           </button>
-          <button onClick={onDuplicate} className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">
-            Duplicate
+          <button
+            onClick={() => newTitle.trim() && onSaveAs(newTitle.trim())}
+            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+            disabled={!newTitle.trim()}
+          >
+            Save As
           </button>
-          <button onClick={onReset} className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-500">
+          <button onClick={onReset} className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500">
             Reset
           </button>
         </div>
@@ -99,12 +148,13 @@ function ConfigPanel({
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="新页面标题"
+            placeholder="新文档标题"
             className="border rounded px-2 py-1"
           />
           <button
             onClick={() => newTitle.trim() && onAddNew(newTitle.trim())}
             className="px-3 py-1 bg-purple-500 text-white rounded hover:bg-purple-600"
+            disabled={!newTitle.trim()}
           >
             Add New
           </button>
@@ -120,13 +170,10 @@ function ConfigPanel({
 }
 
 export function PageCharQuiz() {
-  const { pages, savePages, resetToDefault } = usePagesData();
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [editablePages, setEditablePages] = useState<PageData[]>(pages);
+  const { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault } = useCharQuizDocs();
+  const [editableDoc, setEditableDoc] = useState<DocData>(currentDoc);
 
-  useEffect(() => { setEditablePages(pages); }, [pages]);
-
-  const currentPage = editablePages[currentPageIndex];
+  useEffect(() => { setEditableDoc(currentDoc); }, [currentDoc]);
 
   const getItems = (page: PageData): { pinyin?: string; char?: string }[] => {
     if (page.items) return page.items;
@@ -139,9 +186,9 @@ export function PageCharQuiz() {
     return [];
   };
 
-  const handleItemChange = (itemIndex: number, newItem: { pinyin?: string; char?: string }) => {
-    const newPages = [...editablePages];
-    const page = { ...newPages[currentPageIndex] };
+  const handleItemChange = (pageIndex: number, itemIndex: number, newItem: { pinyin?: string; char?: string }) => {
+    const newDoc = [...editableDoc];
+    const page = { ...newDoc[pageIndex] };
 
     if (page.items) {
       page.items = [...page.items];
@@ -152,81 +199,48 @@ export function PageCharQuiz() {
       page.items[itemIndex] = newItem;
     }
 
-    newPages[currentPageIndex] = page;
-    setEditablePages(newPages);
+    newDoc[pageIndex] = page;
+    setEditableDoc(newDoc);
   };
-
-  const handleSave = () => {
-    savePages(editablePages);
-    alert('已保存!');
-  };
-
-  const handleDuplicate = () => {
-    const currentTitle = currentPage.title;
-    const newTitle = `Copy of ${currentTitle}`;
-    const newPage: PageData = {
-      title: newTitle,
-      items: editablePages[currentPageIndex].items || getItems(editablePages[currentPageIndex]),
-    };
-    const newPages = [...editablePages, newPage];
-    savePages(newPages);
-    setCurrentPageIndex(newPages.length - 1);
-    alert(`已复制为: ${newTitle}`);
-  };
-
-  const handleAddNew = (title: string) => {
-    const newPage: PageData = { title, items: [] };
-    const newPages = [...editablePages, newPage];
-    savePages(newPages);
-    setCurrentPageIndex(newPages.length - 1);
-    alert(`已创建新页面: ${title}`);
-  };
-
-  const items = getItems(currentPage);
 
   return (
     <div>
       <ConfigPanel
-        pages={editablePages}
-        currentPageIndex={currentPageIndex}
-        onSelectPage={setCurrentPageIndex}
-        onSave={handleSave}
-        onDuplicate={handleDuplicate}
-        onAddNew={handleAddNew}
+        docTitles={docTitles}
+        currentDocTitle={currentDocTitle}
+        onSelectDoc={loadDoc}
+        onSave={() => saveCurrentDoc(editableDoc)}
+        onSaveAs={(title) => saveDocAs(title, editableDoc)}
+        onAddNew={addNewDoc}
         onReset={resetToDefault}
       />
 
       <div>
-        {editablePages.map((page, pageIdx) => {
+        {editableDoc.map((page, pageIdx) => {
           const pageItems = getItems(page);
-          const isCurrent = pageIdx === currentPageIndex;
 
           return (
-            <div key={pageIdx} className={isCurrent ? '' : 'print:hidden'}>
-              <A4Page className="px-8" title={page.title} footer={page.title}>
-                <div className="flex flex-1 flex-wrap gap-y-4 m-auto content-center items-center justify-center">
-                  {pageItems.map((item, idx) => (
-                    <PinyinChar
-                      size={SIZE} strokeColor={COLOR}
-                      key={idx}
-                      char={item.char || ''}
-                      pinyin={item.pinyin || ''}
-                      onChange={({ char, pinyin }) => {
-                        if (isCurrent) {
-                          handleItemChange(idx, { char, pinyin });
-                        }
-                      }}
-                    />
-                  ))}
-                  {range(64 - pageItems.length).map((_, idx) => (
-                    <PinyinChar
-                      size={SIZE} strokeColor={COLOR}
-                      key={`empty-${idx}`} char="" pinyin=""
-                    />
-                  ))}
-                </div>
-              </A4Page>
-            </div>
+            <A4Page key={pageIdx} className="px-8" title={page.title} footer={page.title}>
+              <div className="flex flex-1 flex-wrap gap-y-4 m-auto content-center items-center justify-center">
+                {pageItems.map((item, idx) => (
+                  <PinyinChar
+                    size={SIZE} strokeColor={COLOR}
+                    key={idx}
+                    char={item.char || ''}
+                    pinyin={item.pinyin || ''}
+                    onChange={({ char, pinyin }) => {
+                      handleItemChange(pageIdx, idx, { char, pinyin });
+                    }}
+                  />
+                ))}
+                {range(64 - pageItems.length).map((_, idx) => (
+                  <PinyinChar
+                    size={SIZE} strokeColor={COLOR}
+                    key={`empty-${idx}`} char="" pinyin=""
+                  />
+                ))}
+              </div>
+            </A4Page>
           );
         })}
       </div>

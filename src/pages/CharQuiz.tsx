@@ -11,6 +11,7 @@ const COLOR = "#AAA";
 function ConfigPanel({
   docTitles,
   currentDocTitle,
+  isModified,
   onSelectDoc,
   onSave,
   onSaveAs,
@@ -19,6 +20,7 @@ function ConfigPanel({
 }: {
   docTitles: string[];
   currentDocTitle: string;
+  isModified: boolean;
   onSelectDoc: (title: string) => void;
   onSave: () => void;
   onSaveAs: (title: string) => void;
@@ -44,7 +46,11 @@ function ConfigPanel({
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={onSave} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <button 
+            onClick={onSave} 
+            className={`px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 ${!isModified ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!isModified}
+          >
             Save
           </button>
           <button
@@ -88,8 +94,19 @@ function ConfigPanel({
 export function PageCharQuiz() {
   const { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault } = useCharQuizDocs();
   const [editableDoc, setEditableDoc] = useState<NormalizedDocData>(currentDoc);
+  const [isModified, setIsModified] = useState(false);
 
   useEffect(() => { setEditableDoc(currentDoc); }, [currentDoc]);
+
+  // 比较两个文档是否相同
+  const compareDocs = (doc1: NormalizedDocData, doc2: NormalizedDocData): boolean => {
+    return JSON.stringify(doc1) === JSON.stringify(doc2);
+  };
+
+  // 当 editableDoc 变化时，更新 isModified 状态
+  useEffect(() => {
+    setIsModified(!compareDocs(currentDoc, editableDoc));
+  }, [editableDoc, currentDoc]);
 
   const handleItemChange = (pageIndex: number, itemIndex: number, newItem: PageItem) => {
     const newDoc = [...editableDoc];
@@ -201,6 +218,7 @@ export function PageCharQuiz() {
       <ConfigPanel
         docTitles={docTitles}
         currentDocTitle={currentDocTitle}
+        isModified={isModified}
         onSelectDoc={loadDoc}
         onSave={() => saveCurrentDoc(editableDoc)}
         onSaveAs={(title) => saveDocAs(title, editableDoc)}

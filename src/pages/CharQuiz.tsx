@@ -1,7 +1,7 @@
 import _, { range } from "lodash";
 import { useState, useEffect, useCallback } from "react";
 import { A4Page } from "../components/A4Page";
-import { PinyinChar } from "../components/PinyinChar";
+import { PinyinChar, type NavigationEvent } from "../components/PinyinChar";
 import { convertPinyinTones } from "../convertPinyinTones";
 
 type PageItem = { pinyin?: string; char?: string };
@@ -213,6 +213,47 @@ export function PageCharQuiz() {
     newDoc[pageIndex] = page;
     setEditableDoc(newDoc);
   };
+
+  const handleNavigate = (pageIndex: number, itemIndex: number, event: NavigationEvent) => {
+    console.log('Navigate from:', { pageIndex, itemIndex }, 'Event:', event);
+    
+    // 计算目标格子索引
+    let targetIndex = itemIndex;
+    
+    switch (event.direction) {
+      case 'next':
+        targetIndex = itemIndex + 1;
+        break;
+      case 'prev':
+        targetIndex = itemIndex - 1;
+        break;
+      case 'up':
+        targetIndex = itemIndex - 8; // 假设 8x8 网格
+        break;
+      case 'down':
+        targetIndex = itemIndex + 8;
+        break;
+    }
+    
+    // 检查目标索引是否有效（0-63）
+    if (targetIndex >= 0 && targetIndex < 64) {
+      // 构建目标格子的选择器
+      const selector = `.char-quiz-page-${pageIndex}-item-${targetIndex}`;
+      console.log('Trying to select:', selector);
+      
+      // 查找目标格子的 DOM 元素
+      const targetElement = document.querySelector(selector);
+      if (targetElement) {
+        // 找到 PinyinChar 内部的可点击元素（EditableBox）
+        const editableBox = targetElement.querySelector('.cursor-pointer');
+        if (editableBox) {
+          // 触发点击事件，使其进入编辑状态
+          (editableBox as HTMLElement).click();
+          console.log('Clicked target cell:', { pageIndex, targetIndex });
+        }
+      }
+    }
+  };
   console.log('editableDoc', editableDoc);
 
   return (
@@ -236,27 +277,39 @@ export function PageCharQuiz() {
               <div className="flex flex-1 flex-wrap gap-y-4 m-auto content-center items-center justify-center">
                 {pageItems.map((item, idx) => {
                   console.log('item', item);
-                  return <PinyinChar
-                    size={SIZE} strokeColor={COLOR}
-                    key={idx}
-                    char={item.char || ''}
-                    pinyin={convertPinyinTones(item.pinyin || '')}
-                    editPinyin={item.pinyin || ''}
-                    onChange={({ char, pinyin }) => {
-                      handleItemChange(pageIdx, idx, { char, pinyin });
-                    }}
-                  />
+                  const itemIndex = idx;
+                  return (
+                    <PinyinChar
+                      size={SIZE} strokeColor={COLOR}
+                      key={idx}
+                      className={`char-quiz-cell char-quiz-page-${pageIdx}-item-${itemIndex}`}
+                      char={item.char || ''}
+                      pinyin={convertPinyinTones(item.pinyin || '')}
+                      editPinyin={item.pinyin || ''}
+                      onChange={({ char, pinyin }) => {
+                        handleItemChange(pageIdx, itemIndex, { char, pinyin });
+                      }}
+                      onNavigate={(event) => {
+                        handleNavigate(pageIdx, itemIndex, event);
+                      }}
+                    />
+                  );
                 })}
-                {range(64 - pageItems.length).map((_, idx) => {
+                {
+                  range(64 - pageItems.length).map((_, idx) => {
                   const itemIndex = pageItems.length + idx;
                   return (
                     <PinyinChar
                       size={SIZE} strokeColor={COLOR}
                       key={`empty-${idx}`}
+                      className={`char-quiz-cell char-quiz-page-${pageIdx}-item-${itemIndex}`}
                       char=""
                       pinyin=""
                       onChange={({ char, pinyin }) => {
                         handleItemChange(pageIdx, itemIndex, { char, pinyin });
+                      }}
+                      onNavigate={(event) => {
+                        handleNavigate(pageIdx, itemIndex, event);
                       }}
                     />
                   );

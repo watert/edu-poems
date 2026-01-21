@@ -7,7 +7,16 @@ interface PinyinCharProps {
   size?: number;
   strokeColor?: string;
   onChange?: ({ char, pinyin }: { char: string; pinyin: string }) => void;
+  onNavigate?: (event: NavigationEvent) => void;
+  className?: string;
 }
+
+type NavigationDirection = 'prev' | 'next' | 'up' | 'down';
+
+type NavigationEvent = {
+  direction: NavigationDirection;
+  focusType: 'pinyin' | 'char';
+};
 
 const EditableBox = ({
   displayValue,
@@ -16,6 +25,7 @@ const EditableBox = ({
   strokeColor,
   isPinyin,
   onChange,
+  onNavigate,
 }: {
   displayValue: string;
   editValue: string;
@@ -23,6 +33,7 @@ const EditableBox = ({
   strokeColor: string;
   isPinyin: boolean;
   onChange: (val: string) => void;
+  onNavigate?: (event: NavigationEvent) => void;
 }) => {
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState(editValue);
@@ -42,6 +53,52 @@ const EditableBox = ({
     if (inputValue !== editValue) onChange(inputValue);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    
+    // 处理 Tab 键
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      onNavigate?.({
+        direction: e.shiftKey ? 'prev' : 'next',
+        focusType: isPinyin ? 'pinyin' : 'char',
+      });
+      return;
+    }
+    
+    // 处理 Enter 键
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit();
+      onNavigate?.({
+        direction: 'next',
+        focusType: isPinyin ? 'pinyin' : 'char',
+      });
+      return;
+    }
+    
+    // 处理左右键
+    if (e.key === 'ArrowLeft' && start === 0) {
+      e.preventDefault();
+      onNavigate?.({
+        direction: 'prev',
+        focusType: isPinyin ? 'pinyin' : 'char',
+      });
+      return;
+    }
+    
+    if (e.key === 'ArrowRight' && end === inputValue.length) {
+      e.preventDefault();
+      onNavigate?.({
+        direction: 'next',
+        focusType: isPinyin ? 'pinyin' : 'char',
+      });
+      return;
+    }
+  };
+
   const height = Math.round(size * (isPinyin ? 0.4 : 1));
 
   if (editing) {
@@ -53,8 +110,8 @@ const EditableBox = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onBlur={handleSubmit}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          className="absolute inset-0 w-full h-full text-center border border-blue-400 rounded outline-none bg-white/90"
+          onKeyDown={handleKeyDown}
+          className="absolute inset-0 w-full h-full text-center border border-blue-400 rounded outline-none bg-white/90 text-black"
           style={{
             fontSize: isPinyin ? height * 0.6 : size * 0.7,
             fontFamily: isPinyin ? undefined : "'KaiTi', 'Kai', 'STKaiti', 'SimKai', serif",
@@ -91,6 +148,8 @@ const EditableBox = ({
   );
 };
 
+export type { NavigationEvent, NavigationDirection };
+
 export const PinyinChar: React.FC<PinyinCharProps> = ({
   pinyin = "",
   editPinyin,
@@ -98,6 +157,8 @@ export const PinyinChar: React.FC<PinyinCharProps> = ({
   size = 48,
   strokeColor = "#F66",
   onChange,
+  onNavigate,
+  className = "",
 }) => {
   const handleCharChange = (newChar: string) => {
     onChange?.({ char: newChar.slice(0, 1), pinyin: editPinyin || pinyin });
@@ -107,12 +168,32 @@ export const PinyinChar: React.FC<PinyinCharProps> = ({
     onChange?.({ char: char.slice(0, 1), pinyin: newPinyin });
   };
 
+  const handleNavigate = (event: NavigationEvent) => {
+    onNavigate?.(event);
+  };
+
   return (
-    <div className='flex flex-col items-center -ml-[1px]'>
+    <div className={`flex flex-col items-center -ml-[1px] ${className}`}>
       <div className='-mb-[1px]'>
-        <EditableBox displayValue={pinyin} editValue={editPinyin || pinyin} size={Math.ceil(size * 1.33)} strokeColor={strokeColor} isPinyin={true} onChange={handlePinyinChange} />
+        <EditableBox 
+          displayValue={pinyin} 
+          editValue={editPinyin || pinyin} 
+          size={Math.ceil(size * 1.33)} 
+          strokeColor={strokeColor} 
+          isPinyin={true} 
+          onChange={handlePinyinChange}
+          onNavigate={handleNavigate}
+        />
       </div>
-      <EditableBox displayValue={char.slice(0, 1)} editValue={char.slice(0, 1)} size={size} strokeColor={strokeColor} isPinyin={false} onChange={handleCharChange} />
+      <EditableBox 
+        displayValue={char.slice(0, 1)} 
+        editValue={char.slice(0, 1)} 
+        size={size} 
+        strokeColor={strokeColor} 
+        isPinyin={false} 
+        onChange={handleCharChange}
+        onNavigate={handleNavigate}
+      />
     </div>
   );
 };

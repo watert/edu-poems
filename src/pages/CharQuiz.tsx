@@ -274,7 +274,7 @@ export function PageCharQuiz() {
       }
     }
   };
-  console.log('editableDoc', editableDoc);
+  // console.log('editableDoc', editableDoc);
 
   return (
     <div>
@@ -296,7 +296,7 @@ export function PageCharQuiz() {
             <A4Page key={pageIdx} className="px-8" title={page.title} footer={page.title}>
               <div className="flex flex-1 flex-wrap gap-y-4 m-auto content-center items-center justify-center">
                 {pageItems.map((item, idx) => {
-                  console.log('item', item);
+                  // console.log('item', item);
                   const itemIndex = idx;
                   return (
                     <PinyinChar

@@ -195,11 +195,11 @@ export const PinyinChar: React.FC<PinyinCharProps> = ({
   className = "",
 }) => {
   const handleCharChange = (newChar: string) => {
-    onChange?.({ char: newChar.slice(0, 1), pinyin: editPinyin || pinyin });
+    onChange?.({ char: newChar, pinyin: editPinyin || pinyin });
   };
 
   const handlePinyinChange = (newPinyin: string) => {
-    onChange?.({ char: char.slice(0, 1), pinyin: newPinyin });
+    onChange?.({ char: char, pinyin: newPinyin });
   };
 
   const handleNavigate = (event: NavigationEvent) => {

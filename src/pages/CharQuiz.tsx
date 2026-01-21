@@ -209,7 +209,35 @@ export function PageCharQuiz() {
       page.items.push({});
     }
     
-    page.items[itemIndex] = newItem;
+    const chars = newItem.char || '';
+    const pinyin = newItem.pinyin || '';
+    
+    if (chars.length > 1) {
+      // 处理多个汉字的情况
+      for (let i = 0; i < chars.length; i++) {
+        const currentIndex = itemIndex + i;
+        
+        // 确保数组长度足够
+        while (page.items.length <= currentIndex) {
+          page.items.push({});
+        }
+        
+        // 插入模式：如果当前索引已有数据，将后面的数据后移
+        if (i > 0 && (page.items[currentIndex].char || page.items[currentIndex].pinyin)) {
+          // 从后往前移动数据，为新数据腾出空间
+          for (let j = page.items.length - 1; j > currentIndex; j--) {
+            page.items[j] = page.items[j - 1];
+          }
+        }
+        
+        // 设置当前位置的字符（只设置字符，拼音保持为空）
+        page.items[currentIndex] = { char: chars[i], pinyin: page.items[currentIndex].pinyin };
+      }
+    } else {
+      // 单个字符的情况，直接替换
+      page.items[itemIndex] = newItem;
+    }
+    
     newDoc[pageIndex] = page;
     setEditableDoc(newDoc);
   };

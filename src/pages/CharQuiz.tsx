@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { A4Page } from "../components/A4Page";
 import { PinyinChar, type NavigationEvent } from "../components/PinyinChar";
 import { convertPinyinTones } from "../convertPinyinTones";
-import { useCharQuizDocs, type NormalizedDocData, type PageItem } from "../services/char-quiz-store";
+import { useCharQuizDocs, type NormalizedDocData, type PageItem, type DocTitleItem } from "../services/char-quiz-store";
 
 const SIZE = 64;
 const COLOR = "#AAA";
@@ -18,7 +18,7 @@ function ConfigPanel({
   onAddNew,
   onReset,
 }: {
-  docTitles: string[];
+  docTitles: DocTitleItem[];
   currentDocTitle: string;
   isModified: boolean;
   onSelectDoc: (title: string) => void;
@@ -39,8 +39,8 @@ function ConfigPanel({
             onChange={(e) => onSelectDoc(e.target.value)}
             className="border rounded px-2 py-1 min-w-[160px]"
           >
-            {docTitles.map(title => (
-              <option key={title} value={title}>{title}</option>
+            {docTitles.map(item => (
+              <option key={item.id} value={item.title}>{item.title}</option>
             ))}
           </select>
         </div>

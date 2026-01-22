@@ -140,36 +140,80 @@ export function useCharQuizDocs() {
     setCurrentDoc(normalizeDocData(newDoc));
   }, [docTitles]);
 
-  const loadDoc = useCallback((title: string) => {
+  const loadDoc = useCallback((title: string, id?: string) => {
     if (title === DEFAULT_DOC_TITLE) {
       setCurrentDoc(normalizeDocData(DEFAULT_DOC));
+      // 设置默认文档的 ID 到 querystring
+      const url = new URL(window.location.href);
+      url.searchParams.set('docId', 'default');
+      window.history.pushState({}, '', url.toString());
     } else {
       try {
         const stored = localStorage.getItem(`edu-poems-charquiz-${title}`);
         if (stored) {
           const doc = JSON.parse(stored);
           setCurrentDoc(normalizeDocData(doc));
+          // 设置文档的 ID 到 querystring
+          const docId = id || doc[0]?.id || generateId();
+          const url = new URL(window.location.href);
+          url.searchParams.set('docId', docId);
+          window.history.pushState({}, '', url.toString());
         } else {
+          const docId = id || generateId();
           const emptyDoc: DocData = [{
-            id: `doc-${Date.now()}`,
+            id: docId,
             title,
             type: 'pinyin-hanzi',
             data: [{ title, items: [] }]
           }];
           setCurrentDoc(normalizeDocData(emptyDoc));
+          // 设置文档的 ID 到 querystring
+          const url = new URL(window.location.href);
+          url.searchParams.set('docId', docId);
+          window.history.pushState({}, '', url.toString());
         }
       } catch {
+        const docId = id || generateId();
         const emptyDoc: DocData = [{
-          id: `doc-${Date.now()}`,
+          id: docId,
           title,
           type: 'pinyin-hanzi',
           data: [{ title, items: [] }]
         }];
         setCurrentDoc(normalizeDocData(emptyDoc));
+        // 设置文档的 ID 到 querystring
+        const url = new URL(window.location.href);
+        url.searchParams.set('docId', docId);
+        window.history.pushState({}, '', url.toString());
       }
     }
     setCurrentDocTitle(title);
   }, []);
+
+  // 根据 ID 加载文档
+  const loadDocById = useCallback((id: string) => {
+    if (id === 'default') {
+      loadDoc(DEFAULT_DOC_TITLE);
+      return;
+    }
+    // 遍历所有文档标题，找到对应的文档
+    for (const docTitleItem of docTitles) {
+      try {
+        const stored = localStorage.getItem(`edu-poems-charquiz-${docTitleItem.title}`);
+        if (stored) {
+          const doc = JSON.parse(stored);
+          if (doc[0]?.id === id) {
+            loadDoc(docTitleItem.title, id);
+            return;
+          }
+        }
+      } catch {
+        // 忽略错误
+      }
+    }
+    // 如果没有找到对应 ID 的文档，加载默认文档
+    loadDoc(DEFAULT_DOC_TITLE);
+  }, [docTitles, loadDoc]);
 
   const resetToDefault = useCallback(() => {
     docTitles.forEach(t => {
@@ -182,5 +226,5 @@ export function useCharQuizDocs() {
     setCurrentDoc(normalizeDocData(DEFAULT_DOC));
   }, [docTitles]);
 
-  return { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault };
+  return { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, loadDocById, resetToDefault };
 }

@@ -92,11 +92,20 @@ function ConfigPanel({
 }
 
 export function PageCharQuiz() {
-  const { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, resetToDefault } = useCharQuizDocs();
+  const { docTitles, currentDocTitle, currentDoc, saveCurrentDoc, saveDocAs, addNewDoc, loadDoc, loadDocById, resetToDefault } = useCharQuizDocs();
   const [editableDoc, setEditableDoc] = useState<NormalizedDocData>(currentDoc);
   const [isModified, setIsModified] = useState(false);
 
   useEffect(() => { setEditableDoc(currentDoc); }, [currentDoc]);
+
+  // 页面加载时从 querystring 读取 ID 并加载文档
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const docId = urlParams.get('docId');
+    if (docId) {
+      loadDocById(docId);
+    }
+  }, [loadDocById]);
 
   // 比较两个文档是否相同
   const compareDocs = (doc1: NormalizedDocData, doc2: NormalizedDocData): boolean => {
